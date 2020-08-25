@@ -75,18 +75,18 @@ func recursiveDirTree(out io.Writer, path string, keepFiles bool, prefix string)
 			fmt.Fprintf(out, "├───")
 		}
 
-		if isDir {
-			fmt.Fprintf(out, "\033[1;34m")
-		} else {
-			fmt.Fprintf(out, "\033[1;32m")
-		}
+		// if isDir {
+		// 	fmt.Fprintf(out, "\033[1;34m")
+		// } else {
+		// 	fmt.Fprintf(out, "\033[1;32m")
+		// }
 
 		fmt.Fprintf(out, name)
 
 		if !isDir {
 			fileSize := file.Size()
 
-			fmt.Fprintf(out, "\033[1;35m")
+			// fmt.Fprintf(out, "\033[1;35m")
 
 			if fileSize == 0 {
 				fmt.Fprintf(out, " (empty)")
@@ -95,7 +95,9 @@ func recursiveDirTree(out io.Writer, path string, keepFiles bool, prefix string)
 			}
 		}
 
-		fmt.Fprintf(out, "\033[0m\n")
+		// fmt.Fprintf(out, "\033[0m")
+
+		fmt.Fprintf(out, "\n")
 
 		if isDir {
 			if isLast {
