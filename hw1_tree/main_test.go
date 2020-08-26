@@ -36,9 +36,21 @@ const testFullResult = `├───project
 └───zzfile.txt (empty)
 `
 
-func TestTreeFull(t *testing.T) {
+func TestRecursiveTreeFull(t *testing.T) {
 	out := new(bytes.Buffer)
 	err := dirTree(out, "testdata", true)
+	if err != nil {
+		t.Errorf("test for OK Failed - error")
+	}
+	result := out.String()
+	if result != testFullResult {
+		t.Errorf("test for OK Failed - results not match\nGot:\n%v\nExpected:\n%v", result, testFullResult)
+	}
+}
+
+func TestIterativeTreeFull(t *testing.T) {
+	out := new(bytes.Buffer)
+	err := dirTreeIterative(out, "testdata", true)
 	if err != nil {
 		t.Errorf("test for OK Failed - error")
 	}
@@ -62,9 +74,21 @@ const testDirResult = `├───project
 		└───ipsum
 `
 
-func TestTreeDir(t *testing.T) {
+func TestRecursiveTreeDir(t *testing.T) {
 	out := new(bytes.Buffer)
 	err := dirTree(out, "testdata", false)
+	if err != nil {
+		t.Errorf("test for OK Failed - error")
+	}
+	result := out.String()
+	if result != testDirResult {
+		t.Errorf("test for OK Failed - results not match\nGot:\n%v\nExpected:\n%v", result, testDirResult)
+	}
+}
+
+func TestIterativeTreeDir(t *testing.T) {
+	out := new(bytes.Buffer)
+	err := dirTreeIterative(out, "testdata", false)
 	if err != nil {
 		t.Errorf("test for OK Failed - error")
 	}

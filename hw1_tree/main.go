@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 func main() {
@@ -14,15 +15,46 @@ func main() {
 		panic("usage go run main.go . [-f]")
 	}
 	path := os.Args[1]
-	printFiles := len(os.Args) == 3 && os.Args[2] == "-f"
-	err := dirTree(out, path, printFiles)
+	keepFiles := len(os.Args) == 3 && os.Args[2] == "-f"
+	// err := dirTree(out, path, keepFiles)
+	err := dirTreeIterative(out, path, keepFiles)
 	if err != nil {
 		panic(err.Error())
 	}
 }
 
-func dirTree(out io.Writer, path string, printFiles bool) error {
-	return recursiveDirTree(out, path, printFiles, "")
+func dirTree(out io.Writer, path string, keepFiles bool) error {
+	return recursiveDirTree(out, path, keepFiles, []string{""})
+}
+
+func readDir(path string, keepFiles bool) ([]os.FileInfo, error) {
+	folder, err := os.Open(path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	files, err := folder.Readdir(-1)
+
+	if err != nil {
+		return nil, err
+	}
+
+	folder.Close()
+
+	if !keepFiles {
+		files = filterOutFiles(files)
+	}
+
+	sortFilesByName(files)
+
+	return files, nil
+}
+
+func sortFilesByName(files []os.FileInfo) {
+	sort.SliceStable(files, func(i, j int) bool {
+		return files[i].Name() < files[j].Name()
+	})
 }
 
 func filterOutFiles(files []os.FileInfo) []os.FileInfo {
@@ -39,74 +71,137 @@ func filterOutFiles(files []os.FileInfo) []os.FileInfo {
 	return folders
 }
 
-func recursiveDirTree(out io.Writer, path string, keepFiles bool, prefix string) error {
-	folder, err := os.Open(path)
+func printOutLine(out io.Writer, file os.FileInfo, prefix []string, isLast bool) {
+	fmt.Fprintf(out, strings.Join(prefix, ""))
+
+	if isLast {
+		fmt.Fprintf(out, "└───")
+	} else {
+		fmt.Fprintf(out, "├───")
+	}
+
+	// if file.IsDir() {
+	// 	fmt.Fprintf(out, "\033[1;34m")
+	// } else {
+	// 	fmt.Fprintf(out, "\033[1;32m")
+	// }
+
+	fmt.Fprintf(out, file.Name())
+
+	// fmt.Fprintf(out, "\033[0m")
+}
+
+func printOutFileSize(out io.Writer, file os.FileInfo) {
+	fileSize := file.Size()
+
+	// fmt.Fprintf(out, "\033[1;35m")
+
+	if fileSize == 0 {
+		fmt.Fprintf(out, " (empty)")
+	} else {
+		fmt.Fprintf(out, " (%db)", fileSize)
+	}
+
+	// fmt.Fprintf(out, "\033[0m")
+}
+
+func dirTreeIterative(out io.Writer, root string, keepFiles bool) error {
+	path := []string{root}
+	prefix := []string{""}
+
+	rootFolderFiles, err := readDir(root, keepFiles)
 
 	if err != nil {
 		return err
 	}
 
-	defer folder.Close()
+	files := [][]os.FileInfo{rootFolderFiles}
 
-	files, err := folder.Readdir(-1)
+	for len(files) != 0 {
+		curDirFiles := files[len(files)-1]
+
+		if len(curDirFiles) == 0 {
+			files = files[:len(files)-1]
+			prefix = prefix[:len(prefix)-1]
+			path = path[:len(path)-1]
+
+			continue
+		}
+
+		for index, file := range curDirFiles {
+			name := file.Name()
+			isLast := index == len(curDirFiles)-1
+
+			printOutLine(out, file, prefix, isLast)
+
+			if !file.IsDir() {
+				printOutFileSize(out, file)
+			}
+
+			fmt.Fprintf(out, "\n")
+
+			if file.IsDir() {
+				path = append(path, name)
+
+				dirFiles, err := readDir(filepath.Join(path...), keepFiles)
+
+				if err != nil {
+					return err
+				}
+
+				files[len(files)-1] = files[len(files)-1][index+1:]
+				files = append(files, dirFiles)
+
+				if isLast {
+					prefix = append(prefix, "\t")
+				} else {
+					prefix = append(prefix, "│\t")
+				}
+
+				break
+			}
+
+			if isLast {
+				files = files[:len(files)-1]
+				prefix = prefix[:len(prefix)-1]
+				path = path[:len(path)-1]
+			}
+		}
+	}
+
+	return nil
+}
+
+func recursiveDirTree(out io.Writer, path string, keepFiles bool, prefix []string) error {
+	files, err := readDir(path, keepFiles)
 
 	if err != nil {
 		return err
 	}
-
-	if !keepFiles {
-		files = filterOutFiles(files)
-	}
-
-	sort.SliceStable(files, func(i, j int) bool {
-		return files[i].Name() < files[j].Name()
-	})
 
 	for index, file := range files {
 		name := file.Name()
 		isDir := file.IsDir()
 		isLast := index == len(files)-1
 
-		fmt.Fprintf(out, prefix)
-
-		if isLast {
-			fmt.Fprintf(out, "└───")
-		} else {
-			fmt.Fprintf(out, "├───")
-		}
-
-		// if isDir {
-		// 	fmt.Fprintf(out, "\033[1;34m")
-		// } else {
-		// 	fmt.Fprintf(out, "\033[1;32m")
-		// }
-
-		fmt.Fprintf(out, name)
+		printOutLine(out, file, prefix, isLast)
 
 		if !isDir {
-			fileSize := file.Size()
-
-			// fmt.Fprintf(out, "\033[1;35m")
-
-			if fileSize == 0 {
-				fmt.Fprintf(out, " (empty)")
-			} else {
-				fmt.Fprintf(out, " (%db)", fileSize)
-			}
+			printOutFileSize(out, file)
 		}
-
-		// fmt.Fprintf(out, "\033[0m")
 
 		fmt.Fprintf(out, "\n")
 
 		if isDir {
+			parentPath := filepath.Join(path, name)
+
 			if isLast {
-				recursiveDirTree(out, filepath.Join(path, name), keepFiles, prefix+"\t")
+				recursiveDirTree(out, parentPath, keepFiles, append(prefix, "\t"))
 
 				continue
 			}
 
-			recursiveDirTree(out, filepath.Join(path, name), keepFiles, prefix+"│\t")
+			recursiveDirTree(out, parentPath, keepFiles, append(prefix, "│\t"))
 		}
 	}
 
