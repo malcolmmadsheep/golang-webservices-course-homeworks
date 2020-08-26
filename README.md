@@ -12,4 +12,6 @@ All homeworks have minimal amount of tests to make sure program works correctly.
 
 ### Week 1. `tree` command
 
-Implement simplified analog of Unix [`tree` command](https://linux.die.net/man/1/tree) that prints out structure of directory. Use `-f` flag to include files in output.
+**Problem**: implement simplified analog of Unix [`tree` command](https://linux.die.net/man/1/tree) that prints out structure of directory. Use `-f` flag to include files in output.
+
+**Solution**: I implemented recursive and iterative approaches to solve this problem.

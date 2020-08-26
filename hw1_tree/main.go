@@ -24,7 +24,7 @@ func main() {
 }
 
 func dirTree(out io.Writer, path string, keepFiles bool) error {
-	return recursiveDirTree(out, path, keepFiles, []string{""})
+	return recursiveDirTree(out, path, keepFiles, []string{})
 }
 
 func readDir(path string, keepFiles bool) ([]os.FileInfo, error) {
@@ -128,9 +128,12 @@ func dirTreeIterative(out io.Writer, root string, keepFiles bool) error {
 			continue
 		}
 
-		for index, file := range curDirFiles {
-			name := file.Name()
-			isLast := index == len(curDirFiles)-1
+		for len(curDirFiles) != 0 {
+			file := curDirFiles[0]
+			curDirFiles = curDirFiles[1:]
+			files[len(files)-1] = curDirFiles
+
+			isLast := len(curDirFiles) == 0
 
 			printOutLine(out, file, prefix, isLast)
 
@@ -141,7 +144,7 @@ func dirTreeIterative(out io.Writer, root string, keepFiles bool) error {
 			fmt.Fprintf(out, "\n")
 
 			if file.IsDir() {
-				path = append(path, name)
+				path = append(path, file.Name())
 
 				dirFiles, err := readDir(filepath.Join(path...), keepFiles)
 
@@ -149,7 +152,6 @@ func dirTreeIterative(out io.Writer, root string, keepFiles bool) error {
 					return err
 				}
 
-				files[len(files)-1] = files[len(files)-1][index+1:]
 				files = append(files, dirFiles)
 
 				if isLast {
@@ -159,12 +161,6 @@ func dirTreeIterative(out io.Writer, root string, keepFiles bool) error {
 				}
 
 				break
-			}
-
-			if isLast {
-				files = files[:len(files)-1]
-				prefix = prefix[:len(prefix)-1]
-				path = path[:len(path)-1]
 			}
 		}
 	}
