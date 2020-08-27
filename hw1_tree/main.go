@@ -80,29 +80,27 @@ func printOutLine(out io.Writer, file os.FileInfo, prefix []string, isLast bool)
 		fmt.Fprintf(out, "├───")
 	}
 
-	// if file.IsDir() {
-	// 	fmt.Fprintf(out, "\033[1;34m")
-	// } else {
-	// 	fmt.Fprintf(out, "\033[1;32m")
-	// }
+	if file.IsDir() {
+		fmt.Fprintf(out, "\033[1;34m")
+	} else {
+		fmt.Fprintf(out, "\033[1;32m")
+	}
 
-	fmt.Fprintf(out, file.Name())
-
-	// fmt.Fprintf(out, "\033[0m")
+	fmt.Fprintf(out, "%s%s", file.Name(), "\033[0;m")
 }
 
 func printOutFileSize(out io.Writer, file os.FileInfo) {
 	fileSize := file.Size()
 
-	// fmt.Fprintf(out, "\033[1;35m")
+	fmt.Fprintf(out, " \033[1;35m")
 
 	if fileSize == 0 {
-		fmt.Fprintf(out, " (empty)")
+		fmt.Fprintf(out, "(empty)")
 	} else {
-		fmt.Fprintf(out, " (%db)", fileSize)
+		fmt.Fprintf(out, "(%db)", fileSize)
 	}
 
-	// fmt.Fprintf(out, "\033[0m")
+	fmt.Fprintf(out, "\033[0;m")
 }
 
 func dirTreeIterative(out io.Writer, root string, keepFiles bool) error {
