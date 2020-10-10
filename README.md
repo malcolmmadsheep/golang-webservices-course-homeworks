@@ -25,3 +25,5 @@ Week 2 is about using asynchronous functionality in Golang. Asynchrony in Golang
 **Limitations**: all process shouldn't take more than 3s. `DataSignerCrc32` calculates 1s (yeah, sleep inside is intentional). `DataSignerMd5` can be called only once in the same time and takes 10ms, if it's being called in parallel - there will be overheat for 1s.
 
 **Solution**: solution is put inside `hw2_signer/signer.go`, other files in this folder was provided by course, in these files implemented hash functions and tests. The main idea: all jobs communicate to each other by channels - we have one channel for sending data and one for receiving. Sender for job is receiver for the next one. I created wrapper for job that is controlled by wait group and closes sender when job is done.
+
+### Week 3.
