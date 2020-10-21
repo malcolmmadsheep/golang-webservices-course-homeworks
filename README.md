@@ -28,9 +28,11 @@ Week 2 is about using asynchronous functionality in Golang. Asynchrony in Golang
 
 ### Week 3.
 
-Main topics of 3rd week were dynamic data processing (handing JSON with `interface{}` type and reflection) and profiling of program using Golang tool `pprof` according to results of benchmark tests. The main idea of problem is to read file (`data/users.txt`) which contains stringified JSON objects, and find only users that use Android and MSIE browsers.
+Main topics of 3rd week were dynamic data processing (handing JSON with `interface{}` type and reflection) and profiling of program using Golang tool `pprof` according to results of benchmark tests.
 
-Base functionality is implemented in `SlowSearch` method. Before profiling I supposed what blocks of code should be performed. Main pieces of code that impacted performance and created memory overhead were:
+**Problem**: read file (`data/users.txt`) which contains stringified JSON objects, and find only users that use Android and MSIE browsers. Implement `FastSearch` method that will work faster than `SlowSearch` and show performance close to course solution.
+
+**Solution**: base functionality is implemented in `SlowSearch` method. Before profiling I supposed what blocks of code should be performed. Main pieces of code that impacted performance and created memory overhead were:
 
 - using `map[string]interface{}` to user entity. **Possible solution**: use determined structure to store user
 - using regular expression in places where they can be avoided. **Possible solution**: replace regexp matching with `strings.Contains`
