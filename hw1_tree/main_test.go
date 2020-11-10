@@ -122,3 +122,29 @@ func TestIterativeFilesOnly(t *testing.T) {
 		t.Errorf("test for OK Failed - results not match\nGot:\n%v\nExpected:\n%v", result, filesOnlyResult)
 	}
 }
+
+func BenchmarkRecursive(t *testing.B) {
+	out := new(bytes.Buffer)
+
+	for i := 0; i < t.N; i++ {
+		out.Reset()
+		err := dirTreeRecursiveInner(out, "testdata/project", true, []string{})
+
+		if err != nil {
+			t.Errorf(`expected nil, got error '%s'`, err)
+		}
+	}
+}
+
+func BenchmarkIterative(t *testing.B) {
+	out := new(bytes.Buffer)
+
+	for i := 0; i < t.N; i++ {
+		out.Reset()
+		err := dirTreeIterative(out, "testdata/project", true)
+
+		if err != nil {
+			t.Errorf(`expected nil, got error '%s'`, err)
+		}
+	}
+}

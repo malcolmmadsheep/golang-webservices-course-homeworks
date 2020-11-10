@@ -24,7 +24,7 @@ func main() {
 }
 
 func dirTree(out io.Writer, path string, keepFiles bool) error {
-	return recursiveDirTree(out, path, keepFiles, []string{})
+	return dirTreeRecursiveInner(out, path, keepFiles, []string{})
 }
 
 func readDir(path string, keepFiles bool) ([]os.FileInfo, error) {
@@ -166,7 +166,7 @@ func dirTreeIterative(out io.Writer, root string, keepFiles bool) error {
 	return nil
 }
 
-func recursiveDirTree(out io.Writer, path string, keepFiles bool, prefix []string) error {
+func dirTreeRecursiveInner(out io.Writer, path string, keepFiles bool, prefix []string) error {
 	files, err := readDir(path, keepFiles)
 
 	if err != nil {
@@ -190,12 +190,12 @@ func recursiveDirTree(out io.Writer, path string, keepFiles bool, prefix []strin
 			parentPath := filepath.Join(path, name)
 
 			if isLast {
-				recursiveDirTree(out, parentPath, keepFiles, append(prefix, "\t"))
+				dirTreeRecursiveInner(out, parentPath, keepFiles, append(prefix, "\t"))
 
 				continue
 			}
 
-			recursiveDirTree(out, parentPath, keepFiles, append(prefix, "│\t"))
+			dirTreeRecursiveInner(out, parentPath, keepFiles, append(prefix, "│\t"))
 		}
 	}
 
