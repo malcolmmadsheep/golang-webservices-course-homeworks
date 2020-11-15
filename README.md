@@ -12,6 +12,8 @@ All homeworks have minimal amount of tests to make sure program works correctly.
 
 ### Week 1. `tree` command
 
+**Keywords**: os package, recursion, CLI arguments, sorting, color
+
 **Problem**: implement simplified analog of Unix [`tree` command](https://linux.die.net/man/1/tree) that prints out structure of directory. Use `-f` flag to include files in output.
 
 **Solution**: I implemented recursive and iterative approaches to solve this problem. Also output is colorized.
@@ -20,15 +22,19 @@ All homeworks have minimal amount of tests to make sure program works correctly.
 
 Week 2 is about using asynchronous functionality in Golang. Asynchrony in Golang is based on goroutines - lightweight threads that allow you to process operation in concurrent mode. Data between goroutines can be synchronized by channels. Channel is a data structure that works like a pipe and give you an ability to write data in one goroutine and read this data in other.
 
+**Keywords**: multithreading, goroutines, channels, mutex
+
 **Problem**: this problem consists of 2 parts that should be solved. 1) need to implement `ExecutePipeline` - is a function that accepts slice of jobs (`type job func(in, out chan interface{})`) and builds pipeline from them; 2) make calculations to work in parallel, because hash for single value calculates ~8s and we have some time limitations.
 
 **Limitations**: all process shouldn't take more than 3s. `DataSignerCrc32` calculates 1s (yeah, sleep inside is intentional). `DataSignerMd5` can be called only once in the same time and takes 10ms, if it's being called in parallel - there will be overheat for 1s.
 
 **Solution**: solution is put inside `hw2_signer/signer.go`, other files in this folder was provided by course, in these files implemented hash functions and tests. The main idea: all jobs communicate to each other by channels - we have one channel for sending data and one for receiving. Sender for job is receiver for the next one. I created wrapper for job that is controlled by wait group and closes sender when job is done.
 
-### Week 3.
+### Week 3. Profiling
 
 Main topics of 3rd week were dynamic data processing (handing JSON with `interface{}` type and reflection) and profiling of program using Golang tool `pprof` according to results of benchmark tests.
+
+**Keywords**: benchmarks, profiling, optimization, file reading, easyjson
 
 **Problem**: read file (`data/users.txt`) which contains stringified JSON objects, and find only users that use Android and MSIE browsers. Implement `FastSearch` method that will work faster than `SlowSearch` and show performance close to course solution.
 
@@ -66,3 +72,13 @@ After all my improvements I received next results:
 | BenchmarkSolution-8 (Course Solution) | 500          | 2782432 ns/op  | 559910 B/op      | 10422 allocs/op  |
 
 Last row is course solution benchmarks. Main goal is to have one of benchmarks lower than in solution (fast < solution) and one benchmark should be lower than solution \* 1.2 (fast < solution \* 1.2).
+
+### Week 4. `net` package and testing of HTTP services
+
+Fourth week (last one in first part of this course) is about `net` package and basics of networking using Golang. This week includes building of simple HTTP web-server that can handle user requests, making HTTP request to remote services using client and transport entities, work with template and network testing.
+
+**Keywords**: net/http, net/http/httptest, testing, fake HTTP server, XML parsing, JSON, sorting
+
+**Problem**: there is a `SearchClient` structure with `FindUsers` method which does requests to third party service to get users according to URL query params generated from `SearchRequest` argument. Besides search query method also supports sorting and some kind of pagination. `SearchClient` should have 100% test coverage. Tests should cover both scenario: 1) failed requests - when server responded with error; 2) succeed requests - when editor found/not found relative users and returned 200 status code.
+
+**Solution**: general purpose server is implemented in `SearchServer` function that is used as handler function in `httptest.NewServer` in cases where regular flow is expected. `SearchServer` is used in authorization token and successful response tests. In other cases (e.g. when intentional error should be thrown), I create single purpose handle functions that throw error I need to check in test. (Probably, as an alternative solution I could create `SearchServer` handle function using some higher order function and pass configuration there, but I'm thinking about this approach only now, when I'm finishing my explanation). I haven't fully covered successful responses behavior (filtering out user by name or sorting) because main objective of this assignment was to cover `FindUsers` method with tests (also no guaranties that items in response from external server will be sorted 🤷‍♀️).

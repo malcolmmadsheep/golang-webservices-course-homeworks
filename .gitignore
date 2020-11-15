@@ -2,3 +2,4 @@
 *_bench.test
 *.test
 *.out
+cover.html
